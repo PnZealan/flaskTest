@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Date    : 2018-06-18 15:04:13
-# @Author  : zap ()
-# @Link    : 
-# @Version : $Id$
-
-from . import db
-
+from datetime import datetime
+import hashlib
+from werkzeug.security import generate_password_hash, check_password_hash
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from markdown import markdown
+import bleach
+from flask import current_app, request
+from flask_login import UserMixin, AnonymousUserMixin
+from . import db, login_manager
 
 
 class User(db.Model):

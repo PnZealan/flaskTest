@@ -1,25 +1,44 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Date    : 2018-06-17 20:47:49
-# @Author  : zap ()
-# @Link    : 
-# @Version : $Id$
 # filename: factory_method 
 
-from flask import Flask 
-from flask_bootstrap import Boostrap 
-from flask_login import LoginMananger
-from flask_sqlalchemy import SQLAlchemy 
 
-bootstrap = Boostrap()
+from flask import Flask
+from flask_bootstrap import Bootstrap
+from flask_mail import Mail
+from flask_moment import Moment
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
+from flask_pagedown import PageDown
+from config import config
+
+
+bootstrap = Bootstrap()
+mail = Mail()
+moment = Moment()
 db = SQLAlchemy()
+pagedown = PageDown()
+
+login_manager = LoginManager()
+login_manager.login_view = 'auth.login'
 
 
-def create_app():
-	app = Flask(__name__)
-	bootstrap.__init__app(app)
-	db.__init__app(app)
+def create_app(config_name):
+    app = Flask(__name__)
+    app.config.from_object(config[config_name])
+    config[config_name].init_app(app)
 
-	from .main import main as main_buleprint
+    bootstrap.init_app(app)
+    mail.init_app(app)
+    moment.init_app(app)
+    db.init_app(app)
+    login_manager.init_app(app)
+    pagedown.init_app(app)
 
-	
+    from .main import main as main_blueprint
+    app.register_blueprint(main_blueprint)
+
+    from .auth import auth as auth_blueprint
+    app.register_blueprint(auth_blueprint, url_prefix='/auth')
+
+    return app
