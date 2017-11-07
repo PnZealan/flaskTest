@@ -11,6 +11,12 @@ from flask_login import UserMixin, AnonymousUserMixin
 from . import db, login_manager
 
 
+class Permission:
+    COMMENT = 2
+    WRITE = 4
+    ADMIN = 16
+
+
 class User(db.Model):
     __tablename__ = 'user'
     d = db.Column(db.Integer, primary_key=True)
