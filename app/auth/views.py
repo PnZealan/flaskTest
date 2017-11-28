@@ -1,6 +1,5 @@
 from flask import render_template, redirect, request, url_for, flash
-from flask_login import login_user, logout_user, login_required, \
-    current_user
+from flask_login import login_user, logout_user, login_required, current_user
 from . import auth
 from .. import db
 from ..models import User
@@ -117,7 +116,7 @@ def password_reset(token):
     if form.validate_on_submit():
         if User.reset_password(token, form.password.data):
             db.session.commit()
-            flash('Your password has been updated.')
+            flash('你的密码已经更新')
             return redirect(url_for('auth.login'))
         else:
             return redirect(url_for('main.index'))

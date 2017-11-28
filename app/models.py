@@ -12,8 +12,11 @@ from . import db, login_manager
 
 
 class Permission:
+    # 评论权限
     COMMENT = 2
+    # 
     WRITE = 4
+    #  管理权限
     ADMIN = 16
 
 class Role(db.Model):
@@ -100,3 +103,46 @@ class User(db.Model):
         user.password = new_password
         db.session.add(user)
         return True
+
+    def generate_email_change_token(self, new_email, expiration=3600):
+        s = Serializer(current_app.config['SECRET_KEY'], expiration)
+        return s.dumps(
+            {'change_email': self.id, 'new_email': new_email}).decode('utf-8')
+
+    def change_email(self, token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token.encode('utf-8'))
+        except:
+            return False
+        if data.get('change_email') != self.id:
+            return False
+        new_email = data.get('new_email')
+        if new_email is None:
+            return False
+        if self.query.filter_by(email=new_email).first() is not None:
+            return False
+        self.email = new_email
+        self.avatar_hash = self.gravatar_hash()
+        db.session.add(self)
+        return True
+
+    def can(self, perm):
+        return self.role is not None and self.role.has_permission(perm)
+
+    def is_administrator(self):
+        return self.can(Permission.ADMIN)
+
+    # 探测用户最后登录时间
+    def ping(self):
+        self.last_seen = datetime.utcnow()
+        db.session.add(self)
+
+# 多对多关注表
+class Follow(db.Model):
+    __tablename__ = 'follows'
+    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'),
+                            primary_key=True)
+    followed_id = db.Column(db.Integer, db.ForeignKey('users.id'),
+                            primary_key=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
