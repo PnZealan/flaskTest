@@ -138,6 +138,18 @@ class User(db.Model):
         self.last_seen = datetime.utcnow()
         db.session.add(self)
 
+    # 使用gravatar头像服务
+    def gravatar_hash(self):
+        return hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
+
+    def gravatar(self, size=100, default='identicon', rating='g'):
+        url = 'https://secure.gravatar.com/avatar'
+        hash = self.avatar_hash or self.gravatar_hash()
+        return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(
+            url=url, hash=hash, size=size, default=default, rating=rating)
+
+
+
 # 多对多关注表
 class Follow(db.Model):
     __tablename__ = 'follows'
