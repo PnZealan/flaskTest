@@ -148,6 +148,53 @@ class User(db.Model):
         return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(
             url=url, hash=hash, size=size, default=default, rating=rating)
 
+    # 用户关注功能
+    def follow(self, user):
+        if not self.is_following(user):
+            f = Follow(follower=self, followed=user)
+            db.session.add(f)
+
+    def unfollow(self, user):
+        f = self.followed.filter_by(followed_id=user.id).first()
+        if f:
+            db.session.delete(f)
+
+    def is_following(self, user):
+        if user.id is None:
+            return False
+        return self.followed.filter_by(
+            followed_id=user.id).first() is not None
+
+    def is_followed_by(self, user):
+        if user.id is None:
+            return False
+        return self.followers.filter_by(
+            follower_id=user.id).first() is not None
+
+    @property
+    def followed_posts(self):
+        return Post.query.join(Follow, Follow.followed_id == Post.author_id)\
+            .filter(Follow.follower_id == self.id)
+
+    def __repr__(self):
+        return '<User %r>' % self.username
+
+# 自定义匿名类
+class AnonymousUser(AnonymousUserMixin):
+    def can(self, permissions):
+        return False
+
+    def is_administrator(self):
+        return False
+# 为flask_login提供匿名回调类
+login_manager.anonymous_user = AnonymousUser
+
+# flask_login 加载用户回调函数
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
 
 
 # 多对多关注表
