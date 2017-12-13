@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # filename: factory_method 
-
-
 from flask import Flask
 from flask_bootstrap import Bootstrap
 from flask_mail import Mail
@@ -20,6 +18,7 @@ db = SQLAlchemy()
 pagedown = PageDown()
 
 login_manager = LoginManager()
+# 用户登录的端点
 login_manager.login_view = 'auth.login'
 
 
